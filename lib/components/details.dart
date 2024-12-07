@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'globals.dart'; // Importez la liste globale des favoris
-import 'place.dart'; // Importez la classe Place
+import 'globals.dart'; // Import the global favorites list
+import 'place.dart'; // Import the Place class and places list
 
 class DetailsPage extends StatefulWidget {
-  final Place place; // Recevoir un objet de la classe Place
+  final String id; // Receive only the id of the place
 
-  DetailsPage({required this.place});
+  DetailsPage({required this.id});
 
   @override
   _DetailsPageState createState() => _DetailsPageState();
@@ -13,31 +13,27 @@ class DetailsPage extends StatefulWidget {
 
 class _DetailsPageState extends State<DetailsPage> {
   bool isFavorite = false;
+  late Place place;
 
   @override
   void initState() {
     super.initState();
-    // Vérifier si l'élément est déjà dans les favoris
-    isFavorite = favorites.any((item) => item['title'] == widget.place.title);
+    place = places.firstWhere((place) => place.id == widget.id);
+    isFavorite = favorites.contains(widget.id);
   }
 
   void toggleFavorite() {
     setState(() {
       if (isFavorite) {
-        // Supprimer des favoris
-        favorites.removeWhere((item) => item['title'] == widget.place.title);
+ 
+        favorites.remove(widget.id);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${widget.place.title} a été retiré des favoris.')),
+          SnackBar(content: Text('${place.title} has been removed from favorites.')),
         );
       } else {
-        // Ajouter aux favoris
-        favorites.add({
-          'title': widget.place.title,
-          'image': widget.place.image,
-          'price': widget.place.price.toString(),
-        });
+        favorites.add(widget.id);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('${widget.place.title} a été ajouté aux favoris.')),
+          SnackBar(content: Text('${place.title} has been added to favorites.')),
         );
       }
       isFavorite = !isFavorite;
@@ -57,7 +53,7 @@ class _DetailsPageState extends State<DetailsPage> {
           },
         ),
         title: Text(
-          widget.place.title,
+          place.title,
           style: TextStyle(color: Colors.black),
         ),
       ),
@@ -65,42 +61,55 @@ class _DetailsPageState extends State<DetailsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Image principale
+            // Main Image
             ClipRRect(
               borderRadius: BorderRadius.circular(20),
               child: Image.asset(
-                widget.place.image,
+                place.image,
                 height: 300,
                 width: double.infinity,
                 fit: BoxFit.cover,
               ),
             ),
             SizedBox(height: 16),
-            // Titre et prix
+            // Title and Price
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    widget.place.title,
+                    place.title,
                     style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                   ),
                   SizedBox(height: 8),
                   Text(
-                    'Price: \$${widget.place.price.toStringAsFixed(2)}',
+                    'Price: \$${place.price.toStringAsFixed(2)}',
                     style: TextStyle(fontSize: 20, color: Colors.green),
+                  ),
+                  SizedBox(height: 8),
+                  // Rating Stars
+                  Row(
+                    children: List.generate(
+                      5,
+                      (index) => Icon(
+                        index < place.ratings.round()
+                            ? Icons.star
+                            : Icons.star_border,
+                        color: Colors.amber,
+                      ),
+                    ),
                   ),
                   SizedBox(height: 16),
                   Text(
-                    widget.place.description,
+                    place.description,
                     style: TextStyle(fontSize: 16, color: Colors.grey),
                   ),
                 ],
               ),
             ),
             SizedBox(height: 16),
-            // Section Facilities
+            // Facilities Section
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Text(
@@ -113,31 +122,37 @@ class _DetailsPageState extends State<DetailsPage> {
               padding: const EdgeInsets.symmetric(horizontal: 16.0),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: widget.place.facilities.map((facility) {
+                children: place.facilities.map((facility) {
                   return _buildFacilityCard(
-                    icon: _getFacilityIcon(facility), // Obtenir l'icône
+                    icon: _getFacilityIcon(facility),
                     label: facility,
                   );
                 }).toList(),
               ),
             ),
             SizedBox(height: 20),
-            // Bouton Ajouter aux favoris
+            // Add to Favorites and Comment Buttons
             Padding(
               padding: const EdgeInsets.all(16.0),
-              child: ElevatedButton(
-                onPressed: toggleFavorite,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: isFavorite ? Colors.red : Colors.purple,
-                  minimumSize: Size(double.infinity, 50),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+              child: Column(
+                children: [
+                  ElevatedButton(
+                    onPressed: toggleFavorite,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: isFavorite ? Colors.red : Colors.purple,
+                      minimumSize: Size(double.infinity, 50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(30),
+                      ),
+                    ),
+                    child: Text(
+                      isFavorite
+                          ? 'Remove from Favorites'
+                          : 'Add to Favorites',
+                      style: TextStyle(fontSize: 16, color: Colors.white),
+                    ),
                   ),
-                ),
-                child: Text(
-                  isFavorite ? 'Retirer des favoris' : 'Ajouter aux favoris',
-                  style: TextStyle(fontSize: 16, color: Colors.white),
-                ),
+                ],
               ),
             ),
           ],
@@ -146,7 +161,7 @@ class _DetailsPageState extends State<DetailsPage> {
     );
   }
 
-  // Widget pour une carte de facility
+  // Facility Card Widget
   Widget _buildFacilityCard({required IconData icon, required String label}) {
     return Container(
       width: 70,
@@ -170,7 +185,7 @@ class _DetailsPageState extends State<DetailsPage> {
     );
   }
 
-  // Associer une icône aux facilities
+  // Map facility names to icons
   IconData _getFacilityIcon(String facility) {
     switch (facility) {
       case 'WiFi':
@@ -181,6 +196,8 @@ class _DetailsPageState extends State<DetailsPage> {
         return Icons.bathtub;
       case 'Pool':
         return Icons.pool;
+      case 'Bar':
+        return Icons.local_bar;
       default:
         return Icons.help_outline;
     }

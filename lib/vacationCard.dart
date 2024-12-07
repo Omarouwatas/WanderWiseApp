@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:wise2/pages/firstPage.dart';
+
 import 'package:wise2/pages/login.dart';
-import 'package:wise2/pages/login.dart';
+
 class VacationCard extends StatelessWidget {
   const VacationCard({Key? key}) : super(key: key);
 
@@ -91,7 +93,7 @@ class VacationCard extends StatelessWidget {
                         onPressed: () {
                           Navigator.push(
                             context,
-                            MaterialPageRoute(builder: (context) =>  LoginPage()),
+                            MaterialPageRoute(builder: (context) => LoginPage()),
                           );
                         },
                         style: ElevatedButton.styleFrom(

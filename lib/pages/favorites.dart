@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:wise2/components/globals.dart'; // Importez la liste globale des favoris
+import 'package:wise2/components/details.dart';
+import 'package:wise2/components/place.dart';
+import 'package:wise2/components/globals.dart'; // Import the global favorites list
 
 class Favorites extends StatefulWidget {
   @override
@@ -10,45 +12,36 @@ class _FavoritesState extends State<Favorites> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue[50], // Fond bleu clair
+      backgroundColor: Colors.white,
+
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
+            Text(
                   'WanderWise',
-                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 16, fontFamily: 'OpenSans',fontWeight: FontWeight.bold),
                 ),
-                Text(
-                  'Favorites',
-                  style: TextStyle(fontSize: 28,fontFamily: "OpenSans"),
-                ),
-              ],
-            ),
+          
             SizedBox(height: 20),
-            // Favorites Section
+
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Row(
-                  children: [
-                    Icon(Icons.favorite, color: Colors.red,size: 50,),
-                    SizedBox(width: 8),
-                    Text(
-                      'There you go ',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-                    ),
-                  ],
+                Icon(
+  Icons.favorite_border, // Icône contourée
+  size: 60, // Taille de l'icône
+  color: Colors.red, // Couleur de la bordure
+),
+                SizedBox(width: 8),
+                Text(
+                  ' Favorites',
+                  style: TextStyle(fontSize: 25, fontFamily: 'OpenSans'),
                 ),
-                
               ],
             ),
             SizedBox(height: 20),
+
             // Grid of Favorites
             Expanded(
               child: favorites.isEmpty
@@ -60,24 +53,32 @@ class _FavoritesState extends State<Favorites> {
                     )
                   : GridView.builder(
                       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2, // Deux colonnes
-                        mainAxisSpacing: 10, // Espacement vertical
-                        crossAxisSpacing: 10, // Espacement horizontal
-                        childAspectRatio: 0.9, // Proportion des cartes
+                        crossAxisCount: 2, 
+                        mainAxisSpacing: 10,
+                        crossAxisSpacing: 10, 
+                        childAspectRatio: 0.8, 
                       ),
-                      itemCount: favorites.length, // Nombre d'éléments dynamiques
+                      itemCount: favorites.length,
                       itemBuilder: (context, index) {
-                        final favorite = favorites[index];
-                        final title = favorite["title"] ?? "Unknown Title"; // Utiliser un titre par défaut
-                        final imagePath = favorite["imagePath"] ?? "images/aspen3.jpg"; // Utiliser une image par défaut
-                        final price = favorite["price"] ?? "000";
-                        return _buildFavoriteCard(
-                            title: title,
-                            imagePath: imagePath,
-                            price :price,
-                            );
-                        },
+                        final placeId = favorites[index];
+                        final place = places.firstWhere((p) => p.id == placeId);
 
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => DetailsPage(id: place.id),
+                              ),
+                            );
+                          },
+                          child: _buildFavoriteCard(
+                            title: place.title,
+                            imagePath: place.image,
+                            price: '\$${place.price.toStringAsFixed(2)}',
+                          ),
+                        );
+                      },
                     ),
             ),
           ],
@@ -86,8 +87,12 @@ class _FavoritesState extends State<Favorites> {
     );
   }
 
-  // Widget pour la carte d'un favori
-  Widget _buildFavoriteCard({required String title, required String imagePath ,required String price}) {
+  // Widget for a favorite card
+  Widget _buildFavoriteCard({
+    required String title,
+    required String imagePath,
+    required String price,
+  }) {
     return Container(
       decoration: BoxDecoration(
         color: Colors.white,
@@ -109,9 +114,18 @@ class _FavoritesState extends State<Favorites> {
                 borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
                 child: Image.asset(
                   imagePath,
-                  height: 100,
+                  height: 120, // Adjust height
                   width: double.infinity,
                   fit: BoxFit.cover,
+                  errorBuilder: (context, error, stackTrace) {
+                    return Container(
+                      height: 120,
+                      color: Colors.grey[300],
+                      child: Center(
+                        child: Icon(Icons.error, color: Colors.red, size: 40),
+                      ),
+                    );
+                  },
                 ),
               ),
               Positioned(
@@ -125,6 +139,8 @@ class _FavoritesState extends State<Favorites> {
             padding: const EdgeInsets.all(10.0),
             child: Text(
               title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis, // Limit text to one line
               style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
             ),
           ),
@@ -132,7 +148,7 @@ class _FavoritesState extends State<Favorites> {
             padding: const EdgeInsets.all(10.0),
             child: Text(
               price,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
+              style: TextStyle(fontSize: 14, color: Colors.green),
             ),
           ),
         ],

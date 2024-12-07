@@ -1,27 +1,28 @@
 import 'package:flutter/material.dart';
+import 'package:wise2/pages/editProfile.dart';
 import 'package:wise2/pages/help.dart';
 
 class ProfilePage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.blue[50], // Fond bleu clair
+      backgroundColor: Colors.blue[50], 
       body: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Titre
+            
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   'Profile',
-                  style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                  style: TextStyle(fontSize: 16, fontFamily: 'OpenSans'),
                 ),
                 Text(
                   'WanderWise',
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+                  style: TextStyle(fontSize: 28, fontFamily: 'OpenSans'),
                 ),
               ],
             ),
@@ -67,12 +68,11 @@ class ProfilePage extends StatelessWidget {
                   _buildProfileOption(
                     icon: Icons.person,
                     title: 'Profile',
-                    onTap: () {},
-                  ),
-                  _buildProfileOption(
-                    icon: Icons.language,
-                    title: 'Language',
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context)=> ProfileEdit()), );
+                    },
                   ),
                   _buildProfileOption(
                     icon: Icons.lock,

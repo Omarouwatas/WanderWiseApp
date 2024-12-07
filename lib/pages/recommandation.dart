@@ -1,97 +1,99 @@
 import 'package:flutter/material.dart';
-import 'package:wise2/components/details.dart'; // Importez la classe DetailsPage
-import 'package:wise2/components/place.dart'; // Importez la classe Place
+import 'package:wise2/components/details.dart'; // Import the DetailsPage class
+import 'package:wise2/components/place.dart'; // Import the Place class
 
 class RecommendationsPage extends StatelessWidget {
-  // Liste des recommandations sous forme d'objets Place
+  // List of recommendations as Place objects
   final List<Place> recommendations = [
-    Place(
-      id: '1',
-      title: 'Explore Aspen',
-      price: 4199.0,
-      country: 'USA',
-      description: 'Discover the beauty of Aspen, a serene alpine town.',
-      facilities: ['WiFi', 'Pool', 'Spa'],
-      image: 'images/aspen1.jpg',
-    ),
-    Place(
-      id: '2',
-      title: 'Luxurious Aspen',
-      price: 7299.0,
-      country: 'USA',
-      description: 'Experience luxury at its best in Aspen.',
-      facilities: ['WiFi', 'Gym', 'Bar'],
-      image: 'images/aspen2.jpg',
-    ),
-    Place(
-      id: '3',
-      title: 'Mountain Retreat',
-      price: 5499.0,
-      country: 'Canada',
-      description: 'Relax in the serene mountains of Canada.',
-      facilities: ['WiFi', 'Hiking Trails', 'Fireplace'],
-      image: 'images/aspen3.jpg',
-    ),
+  Place(
+    id: '1',
+    title: 'Coeurdes Alpes',
+    price: 6299.0,
+    country: 'France',
+    city: 'Chamonix',
+    description: 'A beautiful alpine resort in the heart of France.',
+    facilities: ['WiFi', 'Pool', 'Spa'],
+    image: 'images/fav1.jpg',
+    ratings: 4.8,
+    category: 'Hotel',
+  ),
+  Place(
+    id: '2',
+    title: 'Beach Stone',
+    price: 6299.0,
+    country: 'France',
+    city: 'Nice',
+    description: 'A serene beach getaway with stunning views.',
+    facilities: ['WiFi', 'Beach Access', 'Bar'],
+    image: 'images/fav2.jpg',
+    ratings: 4.5,
+    category: 'Adventure',
+  ),
+  Place(
+    id: '3',
+    title: 'Isle Of Pines',
+    price: 6299.0,
+    country: 'Italy',
+    city: 'Venice',
+    description: 'A beautiful island with breathtaking scenery.',
+    facilities: ['WiFi', 'Luxury Rooms', 'Private Tours'],
+    image: 'images/fav3.jpg',
+    ratings: 4.6,
+    category: 'Hotel',
+  ),
   ];
 
   @override
   Widget build(BuildContext context) {
+    final screenWidth = MediaQuery.of(context).size.width; // Get screen width
+    final cardWidth = (screenWidth - 48) / 2; // Calculate card width (16 padding * 2 + spacing)
+    final cardHeight = cardWidth + 80; // Card height (Image + Text area)
+
     return Scaffold(
-      backgroundColor: Colors.white,
+      appBar: AppBar(
+        title: Text("Recommendations"),
+      ),
       body: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'WanderWise',
-              style: TextStyle(fontSize: 16, color: Colors.grey[600]),
-            ),
-            Text(
-              'Recommendations',
-              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 20),
-            Expanded(
-              child: GridView.builder(
-                gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 16,
-                  mainAxisSpacing: 16,
-                ),
-                itemCount: recommendations.length,
-                itemBuilder: (context, index) {
-                  final place = recommendations[index];
-                  return GestureDetector(
-                    onTap: () {
-                      // Naviguer vers la page de détails en transmettant un objet Place
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => DetailsPage(place: place), // Transmettez l'objet
-                        ),
-                      );
-                    },
-                    child: _buildRecommendationCard(
-                      title: place.title,
-                      price: '\$${place.price.toStringAsFixed(2)}',
-                      imagePath: place.image,
-                    ),
-                  );
-                },
+        padding: const EdgeInsets.all(16.0),
+        child: GridView.builder(
+          gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+            crossAxisCount: 2,
+            crossAxisSpacing: 16, // Horizontal spacing
+            mainAxisSpacing: 16, // Vertical spacing
+            childAspectRatio: cardWidth / cardHeight, // Adjust card ratio
+          ),
+          itemCount: recommendations.length,
+          itemBuilder: (context, index) {
+            final place = recommendations[index];
+            return GestureDetector(
+              onTap: () {
+                // Navigate to DetailsPage with the selected Place
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => DetailsPage(id: place.id),
+                  ),
+                );
+              },
+              child: _buildRecommendationCard(
+                title: place.title,
+                price: '\$${place.price.toStringAsFixed(2)}',
+                imagePath: place.image,
+                cardWidth: cardWidth,
               ),
-            ),
-          ],
+            );
+          },
         ),
       ),
     );
   }
 
-  // Widget pour la carte de recommandation
+  // Widget for a recommendation card
   Widget _buildRecommendationCard({
     required String title,
     required String price,
     required String imagePath,
+    required double cardWidth,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -108,15 +110,26 @@ class RecommendationsPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          // Image section
           ClipRRect(
             borderRadius: BorderRadius.vertical(top: Radius.circular(15)),
             child: Image.asset(
               imagePath,
-              height: 150,
-              width: double.infinity,
+              height: cardWidth, // Image height proportional to card width
+              width: double.infinity, // Take full width of the card
               fit: BoxFit.cover,
+              errorBuilder: (context, error, stackTrace) {
+                return Container(
+                  height: cardWidth,
+                  color: Colors.grey[300],
+                  child: Center(
+                    child: Icon(Icons.error, color: Colors.red, size: 40),
+                  ),
+                );
+              },
             ),
           ),
+          // Text section
           Padding(
             padding: const EdgeInsets.all(10.0),
             child: Column(
@@ -124,6 +137,8 @@ class RecommendationsPage extends StatelessWidget {
               children: [
                 Text(
                   title,
+                  maxLines: 1, // Limit the title to one line
+                  overflow: TextOverflow.ellipsis, // Add "..." if text overflows
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                 ),
                 SizedBox(height: 5),

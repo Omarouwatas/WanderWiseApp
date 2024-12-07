@@ -49,7 +49,6 @@ class HelpPage extends StatelessWidget {
             Center(
               child: ElevatedButton(
                 onPressed: () {
-                  // Logique pour contacter le support
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
                       content: Text('Contact support feature coming soon!'),

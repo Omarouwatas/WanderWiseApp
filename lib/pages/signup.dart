@@ -1,15 +1,87 @@
-
 import 'package:flutter/material.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 import 'login.dart';
 
+class SignUpPage extends StatefulWidget {
+  @override
+  _SignUpPageState createState() => _SignUpPageState();
+}
 
-class SignUpPage extends StatelessWidget {
+class _SignUpPageState extends State<SignUpPage> {
+  // Controllers for text fields
+  final TextEditingController nameController = TextEditingController();
+  final TextEditingController usernameController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController passwordController = TextEditingController();
+
+  // Regex for validating email
+  final RegExp emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+  // Function to register the user
+  Future<void> registerUser() async {
+    final name = nameController.text;
+    final username = usernameController.text;
+    final email = emailController.text;
+    final password = passwordController.text;
+
+    if (name.isEmpty || username.isEmpty || email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('All fields are required.')),
+      );
+      return;
+    }
+
+    if (!emailRegex.hasMatch(email)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Invalid email format. Please enter a valid email.')),
+      );
+      return;
+    }
+
+    // Prepare data for API
+    final url = Uri.parse('http://127.0.0.1:8000/register/'); // Replace with your Django backend URL
+    final body = {
+      'username': username,
+      'email': email,
+      'password': password,
+    };
+
+    try {
+      final response = await http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: json.encode(body),
+      );
+
+      if (response.statusCode == 201) {
+        // User registered successfully
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('User registered successfully!')),
+        );
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => LoginPage()),
+        );
+      } else {
+        final responseData = json.decode(response.body);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(responseData['error'] ?? 'Registration failed.')),
+        );
+      }
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('An error occurred. Please try again.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.grey[100], // Light background color
       body: Center(
-        child: Container( // Adjust width to simulate a mobile screen
+        child: Container(
+          height: double.infinity,
           padding: const EdgeInsets.all(20.0),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -22,58 +94,67 @@ class SignUpPage extends StatelessWidget {
               ),
             ],
           ),
-          child: SingleChildScrollView( // Makes the content scrollable
+          child: SingleChildScrollView(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // Title
-            
-                  Text(
-                    'Explore',
-                    style: TextStyle(
-                      fontSize: 20,
-                     
-                    ),
-                  ),
-                SizedBox(height: 10),
-    
                 Text(
-                    'WanderWise',
-                    style: TextStyle(
-                      fontSize: 30,
-                    ),
+                  'Explore',
+                  style: TextStyle(fontSize: 20),
+                ),
+                Text(
+                  'WanderWise',
+                  style: TextStyle(
+                    fontSize: 30,
+                    fontWeight: FontWeight.bold,
                   ),
-            
-                SizedBox(height: 30),
-                // Input Fields
-                _buildInputField(label: 'Name', hintText: 'yourname', icon: Icons.person),
+                ),
+                SizedBox(height: 70),
+                _buildInputField(
+                  label: 'Name',
+                  hintText: 'yourname',
+                  icon: Icons.person,
+                  controller: nameController,
+                ),
                 SizedBox(height: 10),
-                _buildInputField(label: 'Username', hintText: 'username', icon: Icons.person_outline),
+                _buildInputField(
+                  label: 'Username',
+                  hintText: 'username',
+                  icon: Icons.person_outline,
+                  controller: usernameController,
+                ),
                 SizedBox(height: 10),
-                _buildInputField(label: 'Phone Number', hintText: '9123456789', icon: Icons.phone),
-                SizedBox(height: 10),
-                _buildInputField(label: 'Email', hintText: 'yourmail@gmail.com', icon: Icons.email),
+                _buildInputField(
+                  label: 'Email',
+                  hintText: 'yourmail@gmail.com',
+                  icon: Icons.email,
+                  controller: emailController,
+                ),
                 SizedBox(height: 10),
                 _buildInputField(
                   label: 'Password',
-                  hintText: '********',
+                  hintText: '',
                   icon: Icons.lock,
                   obscureText: true,
+                  controller: passwordController,
                 ),
                 SizedBox(height: 20),
-                // Buttons
                 Center(
                   child: ElevatedButton(
-                    onPressed: () {
-                      // Handle sign-up logic here
-                    },
+                    onPressed: registerUser, // Call the registerUser function
                     style: ElevatedButton.styleFrom(
-                      backgroundColor:Color(0xFF7541B0),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      backgroundColor: Color(0xFF7541B0),
                       minimumSize: Size(double.infinity, 50), // Full-width button
                     ),
-                    child: Text('Sign Up',style: TextStyle(color: Colors.white),),
+                    child: Text(
+                      'Sign Up',
+                      style: TextStyle(color: Colors.white),
+                    ),
                   ),
                 ),
                 SizedBox(height: 10),
@@ -84,15 +165,16 @@ class SignUpPage extends StatelessWidget {
                 Center(
                   child: TextButton(
                     onPressed: () {
-                  // Ajouter la onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (context) =>  LoginPage()),
-                          );
-                },
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => LoginPage()),
+                      );
+                    },
                     child: Text(
                       'Already have an account? Login',
-                      style: TextStyle(color: Color(0xFF7541B0),),
+                      style: TextStyle(
+                        color: Color(0xFF7541B0),
+                      ),
                     ),
                   ),
                 ),
@@ -109,6 +191,7 @@ class SignUpPage extends StatelessWidget {
     required String hintText,
     required IconData icon,
     bool obscureText = false,
+    required TextEditingController controller,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -120,8 +203,9 @@ class SignUpPage extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
-        SizedBox(height: 5),
+
         TextField(
+          
           obscureText: obscureText,
           decoration: InputDecoration(
             hintText: hintText,

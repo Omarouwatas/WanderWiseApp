@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'firstPage.dart';
+import 'signup.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class LoginPage extends StatefulWidget {
   LoginPage({super.key});
@@ -9,35 +12,48 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  // Déclaration des contrôleurs pour les champs de texte
+  // Controllers for text fields
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
 
-  // Méthode de connexion
-  void SignIn() {
+  // Regex for validating email
+  final RegExp emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+
+  // Method for signing in
+  void signIn() async {
     final email = emailController.text;
     final password = passwordController.text;
 
-    // Exemple de logique de connexion
-    if (email.isNotEmpty && password.isNotEmpty) {
-      // Naviguer vers la Home Page après connexion réussie
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => FirstPage()),
-      );
-    } else {
-      // Afficher un message si les champs sont vides
+    if (email.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Please enter your email and password.')),
       );
+      return;
+    } else if (!emailRegex.hasMatch(email)) {
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Invalid email format. Please enter a valid email.')),
+      );
+    } 
+    
+    else {
+      Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => FirstPage()),
+    );
     }
-  }
+
+}
+  
+
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
         child: Container(
+          width: double.infinity,
+            height: double.infinity,
           padding: const EdgeInsets.all(20.0),
           decoration: BoxDecoration(
             color: Colors.white,
@@ -61,11 +77,14 @@ class _LoginPageState extends State<LoginPage> {
               ),
               Text(
                 'WanderWise',
-                style: TextStyle(fontSize: 30),
+                style: TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+                ),
               ),
               SizedBox(height: 150),
               TextField(
-                controller: emailController, // Connecté au contrôleur
+                controller: emailController, // Connected to the controller
                 decoration: InputDecoration(
                   labelText: 'Email',
                   prefixIcon: Icon(Icons.email),
@@ -74,7 +93,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
               SizedBox(height: 10),
               TextField(
-                controller: passwordController, // Connecté au contrôleur
+                controller: passwordController, // Connected to the controller
                 obscureText: true,
                 decoration: InputDecoration(
                   labelText: 'Password',
@@ -84,8 +103,11 @@ class _LoginPageState extends State<LoginPage> {
               ),
               SizedBox(height: 20),
               ElevatedButton(
-                onPressed: SignIn,
+                onPressed: signIn,
                 style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(15),
+                      ),
                   backgroundColor: Color(0xFF7541B0),
                   minimumSize: Size(double.infinity, 50),
                 ),
@@ -100,9 +122,15 @@ class _LoginPageState extends State<LoginPage> {
               SizedBox(height: 10),
               OutlinedButton(
                 onPressed: () {
-                  
+              Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => SignUpPage()),
+      );
                 },
                 style: OutlinedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(15),
+                          ),
                   minimumSize: Size(double.infinity, 50),
                 ),
                 child: Text(
@@ -116,7 +144,7 @@ class _LoginPageState extends State<LoginPage> {
               Center(
                 child: TextButton(
                   onPressed: () {
-                    // Ajouter la logique de connexion Google ici
+                    // Add Google login logic here
                   },
                   child: Text(
                     'Google',
