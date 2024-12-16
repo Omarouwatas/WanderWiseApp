@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'country.dart'; 
 import 'package:wise2/components/globals.dart';
-
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 class HomePage extends StatefulWidget {
   @override
   _HomePageState createState() => _HomePageState();
@@ -57,19 +58,77 @@ class _HomePageState extends State<HomePage> {
                     ],
                   ),
                   SizedBox(height: 40),
-
-                  // DropdownButton pour sélectionner un pays
-                 // DropdownButton pour sélectionner un pays
 SizedBox(
   width: MediaQuery.of(context).size.width * 0.8,
   child: DropdownButtonFormField<String>(
     value: _selectedCountry,
     decoration: InputDecoration(
       filled: true,
-      fillColor: Colors.transparent, // Fond transparent
+      fillColor: Colors.transparent,
       border: OutlineInputBorder(
-        borderRadius: BorderRadius.circular(20), // Coins arrondis
-        borderSide: BorderSide(color: Colors.grey), // Bordure grise
+        borderRadius: BorderRadius.circular(20), 
+        borderSide: BorderSide(color: Colors.grey), 
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: BorderSide(color: Colors.grey), 
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: BorderSide(color: Colors.blue, width: 2), 
+      ),
+      contentPadding: const EdgeInsets.symmetric(
+        vertical: 16,
+        horizontal: 20,
+      ),
+    ),
+    icon: Icon(
+      Icons.arrow_drop_down,
+      color: Colors.grey, 
+    ),
+    hint: Text(
+      'Find your destination',
+      style: TextStyle(
+        color: Colors.black, 
+        fontSize: 16,
+        fontFamily: "OpenSans",
+      ),
+    ),
+    dropdownColor: Colors.white.withOpacity(0.9), 
+    items: countriesAndCities.keys.map((country) {
+      return DropdownMenuItem<String>(
+        value: country,
+        child: Text(
+          country,
+          style: TextStyle(
+            color: const Color.fromARGB(255, 117, 65, 176), 
+            fontSize: 14,
+          ),
+        ),
+      );
+    }).toList(),
+    onChanged: (value) {
+      setState(() {
+        _selectedCountry = value;
+        _selectedCity = null;
+        _mapImage = 'images/country/${value!.toLowerCase()}.png'; 
+      });
+    },
+  ),
+),
+
+SizedBox(height: 20),
+if (_selectedCountry != null)
+  SizedBox(
+    width: MediaQuery.of(context).size.width * 0.8,
+    child: DropdownButtonFormField<String>(
+      value: _selectedCity,
+         decoration: InputDecoration(
+      filled: true,
+      fillColor: Colors.transparent, 
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20), 
+        borderSide: BorderSide(color: Colors.grey), 
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
@@ -85,80 +144,25 @@ SizedBox(
       ),
     ),
     icon: Icon(
-      Icons.arrow_drop_down, // Icône de menu déroulant
-      color: Colors.grey, // Couleur de l'icône
+      Icons.arrow_drop_down, 
+      color: Colors.grey, 
     ),
     hint: Text(
-      'Find your destination',
+      'Select a City',
       style: TextStyle(
-        color: Colors.black, // Texte clair
+        color:Colors.black, 
         fontSize: 16,
         fontFamily: "OpenSans",
       ),
     ),
-    dropdownColor: Colors.white.withOpacity(0.9), // Fond légèrement transparent pour le menu
-    items: countriesAndCities.keys.map((country) {
-      return DropdownMenuItem<String>(
-        value: country,
-        child: Text(
-          country,
-          style: TextStyle(
-            color: const Color.fromARGB(255, 117, 65, 176), // Couleur du texte des options
-            fontSize: 14,
-          ),
-        ),
-      );
-    }).toList(),
-    onChanged: (value) {
-      setState(() {
-        _selectedCountry = value;
-        _selectedCity = null;
-        _mapImage = 'images/country/${value!.toLowerCase()}.png'; // Change l'image
-      });
-    },
-  ),
-),
-
-                  SizedBox(height: 20),
-
-                  // DropdownButton pour sélectionner une ville
-if (_selectedCountry != null)
-  SizedBox(
-    width: MediaQuery.of(context).size.width * 0.8,
-    child: DropdownButtonFormField<String>(
-      value: _selectedCity,
-      decoration: InputDecoration(
-        filled: true,
-        fillColor: Color(0xFF7541B0), // Couleur de fond mauve
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(20), // Coins arrondis
-          borderSide: BorderSide.none, // Pas de bordure
-        ),
-        contentPadding: const EdgeInsets.symmetric(
-          vertical: 16,
-          horizontal: 20,
-        ),
-      ),
-      icon: Icon(
-        Icons.search,
-        color: Colors.white, // Icône blanche
-      ),
-      hint: Text(
-        'Select a city', // Texte du titre
-        style: TextStyle(
-          color: Color.fromARGB(255, 247, 246, 248), // Couleur violette
-          fontSize: 16,
-          fontFamily: "OpenSans",
-        ),
-      ),
-      dropdownColor: Color(0xFF7541B0), // Fond mauve pour le menu déroulant
+    dropdownColor: Colors.white.withOpacity(0.9), // Fond mauve pour le menu déroulant
       items: countriesAndCities[_selectedCountry]!
           .map((city) => DropdownMenuItem<String>(
                 value: city,
                 child: Text(
                   city,
                   style: TextStyle(
-                    color: Colors.white, // Texte blanc pour les options
+                    color:const Color.fromARGB(255, 117, 65, 176), // Texte blanc pour les options
                     fontFamily: 'OpenSans',
                   ),
                 ),
@@ -172,7 +176,7 @@ if (_selectedCountry != null)
     ),
   ),
 
-                  SizedBox(height: 20),
+    SizedBox(height: 20),
 
                   
                   Center(
@@ -181,13 +185,13 @@ if (_selectedCountry != null)
     opacity: 1.0,
     child: Container(
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20), // Border radius for the container
+        borderRadius: BorderRadius.circular(20), 
       
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(20), // Match the border radius
+        borderRadius: BorderRadius.circular(20),
         child: Image.asset(
-          _mapImage, // Image path
+          _mapImage, 
           height: 300,
           width: MediaQuery.of(context).size.width * 1.2,
           fit: BoxFit.cover,

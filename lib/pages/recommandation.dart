@@ -55,19 +55,20 @@ class RecommendationsPage extends StatelessWidget {
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
+        
         child: GridView.builder(
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            crossAxisSpacing: 16, // Horizontal spacing
-            mainAxisSpacing: 16, // Vertical spacing
-            childAspectRatio: cardWidth / cardHeight, // Adjust card ratio
+            crossAxisSpacing: 16, 
+            mainAxisSpacing: 16, 
+            childAspectRatio: cardWidth / cardHeight, 
           ),
+          
           itemCount: recommendations.length,
           itemBuilder: (context, index) {
             final place = recommendations[index];
             return GestureDetector(
               onTap: () {
-                // Navigate to DetailsPage with the selected Place
                 Navigator.push(
                   context,
                   MaterialPageRoute(

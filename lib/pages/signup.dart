@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'login.dart';
-
+import 'package:dio/dio.dart';
 class SignUpPage extends StatefulWidget {
   @override
   _SignUpPageState createState() => _SignUpPageState();
@@ -11,6 +11,7 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   // Controllers for text fields
   final TextEditingController nameController = TextEditingController();
+  final TextEditingController lastNameController = TextEditingController();
   final TextEditingController usernameController = TextEditingController();
   final TextEditingController emailController = TextEditingController();
   final TextEditingController passwordController = TextEditingController();
@@ -18,67 +19,87 @@ class _SignUpPageState extends State<SignUpPage> {
   // Regex for validating email
   final RegExp emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
   // Function to register the user
-  Future<void> registerUser() async {
-    final name = nameController.text;
-    final username = usernameController.text;
-    final email = emailController.text;
-    final password = passwordController.text;
+ 
 
-    if (name.isEmpty || username.isEmpty || email.isEmpty || password.isEmpty) {
+final dio = Dio(
+  BaseOptions(
+    baseUrl: 'http://127.0.0.1:8000/api/',
+    connectTimeout: const Duration(seconds: 5),
+    receiveTimeout: const Duration(seconds: 3), 
+    headers: {'Content-Type': 'application/json'},
+  ),
+);
+
+
+Future<void> registerUser() async {
+  final name = nameController.text;
+  final lastName = lastNameController.text;
+  final username = usernameController.text;
+  final email = emailController.text;
+  final password = passwordController.text;
+
+  if (name.isEmpty || lastName.isEmpty || username.isEmpty || email.isEmpty || password.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('All fields are required.')),
+    );
+    return;
+  }
+
+  if (!emailRegex.hasMatch(email)) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Invalid email format. Please enter a valid email.')),
+    );
+    return;
+  }
+
+  final body = {
+    'first_name': name,
+    'last_name': lastName,
+    'username': username,
+    'email': email,
+    'password': password,
+  };
+
+  try {
+    final response = await dio.post('register/', data: body);
+
+    if (response.statusCode == 201) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('All fields are required.')),
+        SnackBar(content: Text('User registered successfully!')),
       );
-      return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => LoginPage()),
+      );
+    } else {
+      // Handle backend validation errors
+      final error = response.data['error'] ?? 'Registration failed.';
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(error)),
+      );
     }
-
-    if (!emailRegex.hasMatch(email)) {
+  } on DioError catch (e) {
+    // Handle Dio-specific errors
+    if (e.response != null) {
+      // Server responded with an error
+      print('Error Response: ${e.response?.data}');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Invalid email format. Please enter a valid email.')),
+        SnackBar(content: Text(e.response?.data['error'] ?? 'An error occurred.')),
       );
-      return;
-    }
-
-    // Prepare data for API
-    final url = Uri.parse('http://127.0.0.1:8000/register/'); // Replace with your Django backend URL
-    final body = {
-      'username': username,
-      'email': email,
-      'password': password,
-    };
-
-    try {
-      final response = await http.post(
-        url,
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode(body),
-      );
-
-      if (response.statusCode == 201) {
-        // User registered successfully
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('User registered successfully!')),
-        );
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => LoginPage()),
-        );
-      } else {
-        final responseData = json.decode(response.body);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(responseData['error'] ?? 'Registration failed.')),
-        );
-      }
-    } catch (error) {
+    } else {
+     
+      print('Dio Error: ${e.message}');
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('An error occurred. Please try again.')),
+        SnackBar(content: Text('Network error: ${e.message}')),
       );
     }
   }
+}
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.grey[100], // Light background color
+      backgroundColor: Colors.grey[100], 
       body: Center(
         child: Container(
           height: double.infinity,
@@ -113,10 +134,17 @@ class _SignUpPageState extends State<SignUpPage> {
                 ),
                 SizedBox(height: 70),
                 _buildInputField(
-                  label: 'Name',
-                  hintText: 'yourname',
+                  label: 'FirstName',
+                  hintText: 'Firstname',
                   icon: Icons.person,
                   controller: nameController,
+                ),
+                SizedBox(height: 10),
+                _buildInputField(
+                  label: 'LastName',
+                  hintText: 'Last name',
+                  icon: Icons.person,
+                  controller: lastNameController,
                 ),
                 SizedBox(height: 10),
                 _buildInputField(
@@ -143,13 +171,13 @@ class _SignUpPageState extends State<SignUpPage> {
                 SizedBox(height: 20),
                 Center(
                   child: ElevatedButton(
-                    onPressed: registerUser, // Call the registerUser function
+                    onPressed: registerUser, 
                     style: ElevatedButton.styleFrom(
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(15),
                       ),
                       backgroundColor: Color(0xFF7541B0),
-                      minimumSize: Size(double.infinity, 50), // Full-width button
+                      minimumSize: Size(double.infinity, 50), 
                     ),
                     child: Text(
                       'Sign Up',
@@ -186,36 +214,37 @@ class _SignUpPageState extends State<SignUpPage> {
     );
   }
 
-  Widget _buildInputField({
-    required String label,
-    required String hintText,
-    required IconData icon,
-    bool obscureText = false,
-    required TextEditingController controller,
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 16,
-            fontWeight: FontWeight.bold,
+Widget _buildInputField({
+  required String label,
+  required String hintText,
+  required IconData icon,
+  bool obscureText = false,
+  required TextEditingController controller,
+}) {
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        label,
+        style: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+      SizedBox(height: 5),
+      TextField(
+        controller: controller, // Bind the controller here
+        obscureText: obscureText,
+        decoration: InputDecoration(
+          hintText: hintText,
+          prefixIcon: Icon(icon),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
           ),
         ),
+      ),
+    ],
+  );
+}
 
-        TextField(
-          
-          obscureText: obscureText,
-          decoration: InputDecoration(
-            hintText: hintText,
-            prefixIcon: Icon(icon),
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
 }

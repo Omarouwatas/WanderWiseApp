@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:wise2/pages/firstPage.dart';
-
 import 'package:wise2/pages/login.dart';
 
 class VacationCard extends StatelessWidget {

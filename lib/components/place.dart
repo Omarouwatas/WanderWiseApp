@@ -1,3 +1,6 @@
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:wise2/components/globals.dart';
 class Place {
   final String id;
   final String title;
@@ -9,6 +12,7 @@ class Place {
   final String image;
   final double ratings;
   final String category;
+
   Place({
     required this.id,
     required this.title,
@@ -21,335 +25,103 @@ class Place {
     required this.ratings,
     required this.category,
   });
+
+  factory Place.fromJson(Map<String, dynamic> json) {
+    return Place(
+      id: json['id'].toString(),
+      title: json['title'],
+      price: json['price'] is int ? json['price'].toDouble() : json['price'],
+      country: json['country'],
+      city: json['city'],
+      description: json['description'],
+      facilities: List<String>.from(json['facilities']), 
+      image: json['image'], 
+      ratings: json['ratings'] is int ? json['ratings'].toDouble() : json['ratings'],
+      category: json['category'],
+    );
+  }
+}
+List<Place> fetchedPlaces = [];
+List<Place> localPlaces = [];
+
+
+Future<List<Place>> fetchPlaces(String city) async {
+  final String apiUrl = '$baseUrl/places/city/$city/'; 
+  
+  try {
+    final response = await http.get(Uri.parse(apiUrl));
+
+    if (response.statusCode == 200) {
+    
+      List<dynamic> jsonResponse = json.decode(response.body);
+      fetchedPlaces = jsonResponse.map((placeJson) => Place.fromJson(placeJson)).toList();
+      return jsonResponse.map((placeJson) => Place.fromJson(placeJson)).toList();
+    } else {
+      throw Exception('Failed to load places');
+    }
+  } catch (error) {
+    throw Exception('Error fetching places: $error');
+  }
 }
 
-final List<Place> places = [
-  Place(
-    id: '1',
-    title: 'Coeurdes Alpes',
-    price: 6299.0,
-    country: 'France',
-    city: 'Chamonix',
-    description: 'A beautiful alpine resort in the heart of France.',
-    facilities: ['WiFi', 'Pool', 'Spa'],
-    image: 'images/fav1.jpg',
-    ratings: 4.8,
-    category: 'Hotel',
-  ),
-  Place(
-    id: '2',
-    title: 'Beach Stone',
-    price: 6299.0,
-    country: 'France',
-    city: 'Nice',
-    description: 'A serene beach getaway with stunning views.',
-    facilities: ['WiFi', 'Beach Access', 'Bar'],
-    image: 'images/fav2.jpg',
-    ratings: 4.5,
-    category: 'Adventure',
-  ),
-  Place(
-    id: '3',
-    title: 'Isle Of Pines',
-    price: 6299.0,
-    country: 'Italy',
-    city: 'Venice',
-    description: 'A beautiful island with breathtaking scenery.',
-    facilities: ['WiFi', 'Luxury Rooms', 'Private Tours'],
-    image: 'images/fav3.jpg',
-    ratings: 4.6,
-    category: 'Hotel',
-  ),
-  Place(
-    id: '4',
-    title: 'Beach Maldives',
-    price: 6299.0,
-    country: 'Italy',
-    city: 'Naples',
-    description: 'Experience paradise with crystal clear waters.',
-    facilities: ['WiFi', 'Ocean View', 'Infinity Pool'],
-    image: 'images/fav4.jpg',
-    ratings: 4.9,
-    category: 'Adventure',
-  ),
+Future<Place> fetchPlaceDetails(String id) async {
+  final String apiUrl = '$baseUrl/place/$id/'; 
 
-  Place(
-    id: '5',
-    title: 'Swiss Haven',
-    price: 7599.0,
-    country: 'Switzerland',
-    city: 'Zurich',
-    description: 'A peaceful retreat surrounded by Swiss Alps.',
-    facilities: ['WiFi', 'Heated Pool', 'Mountain View'],
-    image: 'images/swiss1.jpg',
-    ratings: 4.7,
-    category: 'Hotel',
-  ),
-  Place(
-    id: '6',
-    title: 'Desert Oasis',
-    price: 5299.0,
-    country: 'UAE',
-    city: 'Dubai',
-    description: 'An exclusive resort amidst the golden sands.',
-    facilities: ['WiFi', 'Desert Safari', 'Private Villa'],
-    image: 'images/desert1.jpg',
-    ratings: 4.4,
-    category: 'Adventure',
-  ),
-  Place(
-    id: '7',
-    title: 'Rainforest Retreat',
-    price: 6599.0,
-    country: 'Brazil',
-    city: 'Manaus',
-    description: 'Immerse yourself in the heart of the Amazon.',
-    facilities: ['WiFi', 'Nature Trails', 'Eco-Lodges'],
-    image: 'images/rainforest1.jpg',
-    ratings: 4.3,
-    category: 'Adventure',
-  ),
-  Place(
-    id: '8',
-    title: 'Urban Luxury',
-    price: 8799.0,
-    country: 'USA',
-    city: 'New York',
-    description: 'Experience the vibrant lifestyle of New York City.',
-    facilities: ['WiFi', 'Skyline View', 'Exclusive Dining'],
-    image: 'images/urban1.jpg',
-    ratings: 4.6,
-    category: 'Hotel',
-  ),
-  Place(
-    id: '9',
-    title: 'Tropical Paradise',
-    price: 7299.0,
-    country: 'Thailand',
-    city: 'Phuket',
-    description: 'A tropical escape with pristine beaches.',
-    facilities: ['WiFi', 'Water Sports', 'Private Beaches'],
-    image: 'images/tropical1.jpg',
-    ratings: 4.7,
-    category: 'Adventure',
-  ),
-  Place(
-    id: '10',
-    title: 'Historic Charm',
-    price: 5999.0,
-    country: 'Greece',
-    city: 'Athens',
-    description: 'Explore the history and culture of ancient Greece.',
-    facilities: ['WiFi', 'Guided Tours', 'Local Cuisine'],
-    image: 'images/historic1.jpg',
-    ratings: 4.5,
-    category: 'Restaurant',
-  ),
-  Place(
-    id: '11',
-    title: 'Mountain Delight',
-    price: 4599.0,
-    country: 'Nepal',
-    city: 'Kathmandu',
-    description: 'A cozy stay at the foot of the majestic Himalayas.',
-    facilities: ['WiFi', 'Trekking', 'Local Guides'],
-    image: 'images/mountain1.jpg',
-    ratings: 4.8,
-    category: 'Adventure',
-  ),
-  Place(
-    id: '12',
-    title: 'Coastal Feast',
-    price: 3299.0,
-    country: 'Spain',
-    city: 'Barcelona',
-    description: 'Savor authentic coastal dishes by the Mediterranean.',
-    facilities: ['WiFi', 'Sea View', 'Gourmet Dining'],
-    image: 'images/coastal1.jpg',
-    ratings: 4.7,
-    category: 'Restaurant',
-  ),
-  Place(
-    id: '13',
-    title: 'Aurora Nights',
-    price: 6999.0,
-    country: 'Norway',
-    city: 'Tromsø',
-    description: 'Witness the magical northern lights in Tromsø.',
-    facilities: ['WiFi', 'Fireplace', 'Star Gazing'],
-    image: 'images/norway1.jpg',
-    ratings: 4.9,
-    category: 'Adventure',
-  ),
-  Place(
-    id: '14',
-    title: 'Cultural Heritage',
-    price: 3999.0,
-    country: 'India',
-    city: 'Jaipur',
-    description: 'Explore the pink city and its royal heritage.',
-    facilities: ['WiFi', 'Guided Tours', 'Traditional Cuisine'],
-    image: 'images/jaipur1.jpg',
-    ratings: 4.6,
-    category: 'Restaurant',
-  ),
-  Place(
-    id: '15',
-    title: 'City Skyline',
-    price: 7899.0,
-    country: 'Singapore',
-    city: 'Singapore City',
-    description: 'Experience luxury amidst the dazzling skyline.',
-    facilities: ['WiFi', 'Infinity Pool', 'Sky Bar'],
-    image: 'images/singapore1.jpg',
-    ratings: 4.8,
-    category: 'Hotel',
-  ),
-  Place(
-  id: '16',
-  title: 'Hotel Campanile Paris',
-  price: 120.0,
-  country: 'France',
-  city: 'Paris',
-  description: 'Enjoy a comfortable stay with modern amenities at Hotel Campanile.',
-  facilities: ['Free WiFi', 'Restaurant', 'Meeting Rooms'],
-  image: 'images/Hotel Campanile Paris.webp',
-  ratings: 4.2,
-  category: 'Hotel',
-),
-Place(
-  id: '17',
-  title: 'Hotel Park Lane Paris',
-  price: 200.0,
-  country: 'France',
-  city: 'Paris',
-  description: 'Luxury and charm in the heart of Paris at Hotel Park Lane.',
-  facilities: ['Free WiFi', 'Fitness Center', 'Room Service'],
-  image: 'images/Hotel Park Lane Paris.webp',
-  ratings: 4.5,
-  category: 'Hotel',
-),
-Place(
-  id: '18',
-  title: 'Motel One Paris',
-  price: 90.0,
-  country: 'France',
-  city: 'Paris',
-  description: 'Affordable luxury with a modern touch at Motel One.',
-  facilities: ['Free WiFi', 'Bar', '24-Hour Front Desk'],
-  image: 'images/Motel One Paris.webp',
-  ratings: 4.0,
-  category: 'Hotel',
-),
-Place(
-  id: '19',
-  title: 'Royal Garden',
-  price: 350.0,
-  country: 'France',
-  city: 'Paris',
-  description: 'Indulge in luxury at the Royal Garden Champs-Élysées.',
-  facilities: ['Free WiFi', 'Spa', 'Fine Dining'],
-  image: 'images/Royal Garden Champs-Élysées.webp',
-  ratings: 4.7,
-  category: 'Hotel',
-),
-Place(
-  id: '20',
-  title: 'Aspic',
-  price: 85.0,
-  country: 'France',
-  city: 'Paris',
-  description: 'Enjoy an intimate and innovative dining experience at Aspic.',
-  facilities: ['Chef\'s Special', 'Cozy Ambiance', 'Seasonal Menu'],
-  image: 'images/Aspic.jpg',
-  ratings: 4.8,
-  category: 'Restaurant',
-),
-Place(
-  id: '21',
-  title: 'L\'Épicure',
-  price: 250.0,
-  country: 'France',
-  city: 'Paris',
-  description: 'Dine in luxury with Michelin-starred cuisine at L\'Épicure.',
-  facilities: ['Michelin Star', 'Outdoor Seating', 'Fine Dining'],
-  image: 'images/Épicure.jpg',
-  ratings: 5.0,
-  category: 'Restaurant',
-),
-Place(
-  id: '22',
-  title: 'Le Paris',
-  price: 45.0,
-  country: 'France',
-  city: 'Paris',
-  description: 'Experience authentic Parisian flavors at Le Paris.',
-  facilities: ['Traditional Cuisine', 'Outdoor Terrace', 'Wine Selection'],
-  image: 'images/Le Paris.jpeg',
-  ratings: 4.5,
-  category: 'Restaurant',
-),
-Place(
-  id: '23',
-  title: 'Virtus',
-  price: 120.0,
-  country: 'France',
-  city: 'Paris',
-  description: 'Taste contemporary cuisine with stunning views at Virtus.',
-  facilities: ['Contemporary Dishes', 'City Views', 'Tasting Menu'],
-  image: 'images/Virtus.jpg',
-  ratings: 4.7,
-  category: 'Restaurant',
-),
-Place(
-  id: '24',
-  title: 'Arc de Triomphe',
-  price: 0.0,
-  country: 'France',
-  city: 'Paris',
-  description: 'Visit the iconic Arc de Triomphe and enjoy the breathtaking views of Paris from the top.',
-  facilities: ['Historic Site', 'Panoramic View', 'Cultural Landmark'],
-  image: 'images/Arc de Triomphe.jpg',
-  ratings: 4.7,
-  category: 'Adventure',
-),
-Place(
-  id: '25',
-  title: 'Musée du Louvre',
-  price: 17.0, // Prix d'entrée standard
-  country: 'France',
-  city: 'Paris',
-  description: 'Explore the world\'s largest art museum, home to the Mona Lisa and countless treasures.',
-  facilities: ['Art Museum', 'Guided Tours', 'Iconic Exhibits'],
-  image: 'images/Musée du Louvre.jpg',
-  ratings: 4.8,
-  category: 'Adventure',
-),
-Place(
-  id: '26',
-  title: 'Sainte-Chapelle',
-  price: 11.5, 
-  country: 'France',
-  city: 'Paris',
-  description: 'Admire the stunning stained-glass windows of this Gothic masterpiece.',
-  facilities: ['Historic Landmark', 'Gothic Architecture', 'Cultural Heritage'],
-  image: 'images/Sainte-Chapelle.jpg',
-  ratings: 4.6,
-  category: 'Adventure',
-),
-Place(
-  id: '27',
-  title: 'Tour Eiffel',
-  price: 25.9, 
-  country: 'France',
-  city: 'Paris',
-  description: 'Experience the grandeur of Paris from the top of the Eiffel Tower.',
-  facilities: ['Panoramic View', 'Restaurant', 'Cultural Icon'],
-  image: 'images/Tour Eiffel.jpg',
-  ratings: 4.9,
-  category: 'Adventure',
-),
+  try {
+    final response = await http.get(Uri.parse(apiUrl));
+
+    if (response.statusCode == 200) {
+      return Place.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to load place details');
+    }
+  } catch (error) {
+    throw Exception('Error fetching place details: $error');
+  }
+}
+Future<void> toggleFavorite(String userId, String placeId) async {
+  final String apiUrl = '$baseUrl/favorites/toggle/$userId/$placeId/';
+  try {
+    final response = await http.post(Uri.parse(apiUrl));
+
+    if (response.statusCode == 201) {
+      print('Added to favorites');
+    } else if (response.statusCode == 200) {
+      print('Removed from favorites');
+    } else {
+      print('Error: ${response.body}');
+    }
+  } catch (error) {
+    print('Error toggling favorite: $error');
+  }
+}
 
 
+Future<List<Place>> fetchAllPlaces() async {
+  final String apiUrl = '$baseUrl/places/';
 
-];
+  try {
+    final response = await http.get(Uri.parse(apiUrl));
+
+    if (response.statusCode == 200) {
+      List<dynamic> jsonResponse = json.decode(response.body);
+      // Update the global localPlaces with fetched data
+      localPlaces = jsonResponse.map((placeJson) => Place.fromJson(placeJson)).toList();
+      return localPlaces;
+    } else {
+      throw Exception('Failed to load places');
+    }
+  } catch (error) {
+    throw Exception('Error fetching places: $error');
+  }
+}
+  Future<List<int>> fetchFavorites(String userId) async {
+    final url = Uri.parse('$baseUrl/favorites/ids/$userId/');
+    final response = await http.get(url);
+
+    if (response.statusCode == 200) {
+      return List<int>.from(jsonDecode(response.body));
+    } else {
+      throw Exception('Failed to load favorites');
+    }
+  }
